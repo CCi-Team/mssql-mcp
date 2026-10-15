@@ -80,8 +80,14 @@ New-TrustedDir (Split-Path $DataDir)   # C:\ProgramData\CCI
 New-TrustedDir $DataDir
 Get-ChildItem $DataDir -Force | Where-Object { $_.Name -notin 'config.json', 'approle.dat' } | Remove-Item -Recurse -Force
 Write-Text (Join-Path $DataDir 'config.json') $config
-$rolePwd | & $exe --set-secret
-if ($LASTEXITCODE -ne 0) { Log 'FAILED: --set-secret'; exit 1 }
+# Piping to the exe, or Process.StandardInput, writes a BOM first when the console input encoding is UTF-8 (cp 65001),
+# which ends up in the stored password. Use UTF-8 without BOM for the child's stdin.
+[Console]::InputEncoding = New-Object System.Text.UTF8Encoding $false
+$psi = New-Object System.Diagnostics.ProcessStartInfo $exe, '--set-secret'
+$psi.UseShellExecute = $false; $psi.RedirectStandardInput = $true
+$p = [System.Diagnostics.Process]::Start($psi)
+$p.StandardInput.WriteLine($rolePwd.Trim()); $p.StandardInput.Close(); $p.WaitForExit()
+if ($p.ExitCode -ne 0) { Log 'FAILED: --set-secret'; exit 1 }
 Log "config and secret written to $DataDir"
 
 # 3. Claude Code registration (machine-wide)

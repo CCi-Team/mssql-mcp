@@ -31,7 +31,7 @@ Ninja custom fields (device, inheriting from organization):
 |---|---|---|
 | `mssqlMcpConfig` | multi-line text | `config.json` for the client, plus optional `deployExclude: ["PC-NAME", ...]` |
 | `mssqlMcpRolePassword` | secure | the SQL application role password |
-| `mssqlMcpStatus` | text | written by the script: version and exe SHA-256 |
+| `mssqlMcpStatus` | text | written by the script: version, exe SHA-256, server/database, selftest result |
 
 ## SQL side
 

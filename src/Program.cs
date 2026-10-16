@@ -24,7 +24,8 @@ var home = Environment.GetEnvironmentVariable("MSSQL_MCP_HOME") ?? @"C:\ProgramD
 
 if (args.Contains("--set-secret"))
 {
-    var pwd = Console.In.ReadLine()?.Trim();
+    // Windows PowerShell piping with a UTF-8 console encoding sends a BOM first; .NET's Trim() keeps U+FEFF.
+    var pwd = Console.In.ReadLine()?.Trim().Trim('﻿').Trim();
     if (string.IsNullOrEmpty(pwd)) { Console.Error.WriteLine("no password on stdin"); return 1; }
     Directory.CreateDirectory(home);
     File.WriteAllBytes(Path.Combine(home, "approle.dat"),
